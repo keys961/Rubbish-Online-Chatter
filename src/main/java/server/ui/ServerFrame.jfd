@@ -1,0 +1,49 @@
+JFDML JFormDesigner: "6.0.2.0.116" Java: "1.8.0_152-release" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormWindow( "javax.swing.JFrame", new FormLayoutManager( class java.awt.GridBagLayout ) {
+			"$columnSpecs": "0:1.0"
+			"$rowSpecs": "0:1.0, 312:1.0"
+			"$alignTop": true
+			"$alignLeft": true
+			"$hGap": 3
+		} ) {
+			name: "this"
+			"title": "Server"
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.GridLayout ) ) {
+				name: "panel1"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label1"
+					"text": "Listening Port:"
+				} )
+				add( new FormComponent( "javax.swing.JFormattedTextField" ) {
+					name: "portTextField"
+				} )
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "startButton"
+					"text": "Start"
+					addEvent( new FormEvent( "java.awt.event.MouseListener", "mouseClicked", "startButtonMouseClicked", true ) )
+				} )
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "stopButton"
+					"text": "Stop"
+					"enabled": false
+					addEvent( new FormEvent( "java.awt.event.MouseListener", "mouseClicked", "stopButtonMouseClicked", true ) )
+				} )
+			}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) )
+			add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+				name: "scrollPane1"
+				add( new FormComponent( "javax.swing.JTextArea" ) {
+					name: "resultTextArea"
+				} )
+			}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
+				"gridy": 1
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 0 )
+			"size": new java.awt.Dimension( 418, 398 )
+		} )
+	}
+}
