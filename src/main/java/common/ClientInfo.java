@@ -6,17 +6,15 @@ import java.io.Serializable;
 
 public final class ClientInfo implements Serializable
 {
+
     private int id;
 
-    private String ip;
+    private String username;
 
-    private int port;
-
-    public ClientInfo(int id, String ip, int port)
+    public ClientInfo(int id, String username)
     {
+        this.username = username;
         this.id = id;
-        this.ip = ip;
-        this.port = port;
     }
 
     public int getId()
@@ -24,20 +22,15 @@ public final class ClientInfo implements Serializable
         return id;
     }
 
-    public String getIp()
+    public String getUsername()
     {
-        return ip;
-    }
-
-    public int getPort()
-    {
-        return port;
+        return username;
     }
 
     @Override
     public String toString()
     {
-        return "ID: " + this.id + ", IP: " + ip + ", Port: " + port;
+        return "ID: " + this.id + ", Username: " + username;
     }
 
     @Override
@@ -50,8 +43,13 @@ public final class ClientInfo implements Serializable
             return true;
 
         ClientInfo convertedObj = (ClientInfo)obj;
-        return convertedObj.id == this.id && convertedObj.port == this.port
-                && convertedObj.ip.equals(this.ip);
+        return convertedObj.id == this.id && convertedObj.username.equals(this.username);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return id;
     }
 }
 

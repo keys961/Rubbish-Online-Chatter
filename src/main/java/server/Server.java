@@ -19,10 +19,6 @@ public class Server implements Runnable
 {
     private Map<ClientInfo, Socket> clientMap;
 
-    private Map<Integer, Socket> hashClientMap;
-
-    private int port;
-
     private ServerSocket serverSocket;
 
     private ExecutorService clientThreadPool;
@@ -31,11 +27,9 @@ public class Server implements Runnable
 
     public Server(int port, JTextArea textArea) throws IOException
     {
-        this.hashClientMap = new ConcurrentHashMap<>();
         this.clientMap = new ConcurrentHashMap<>();
         this.textArea = textArea;
-        this.port = port;
-        serverSocket = new ServerSocket(this.port);
+        serverSocket = new ServerSocket(port);
         this.clientThreadPool = Executors.newCachedThreadPool();
     }
 
@@ -46,24 +40,38 @@ public class Server implements Runnable
 
     private void startServer()
     {
-        while(true)
+        boolean flag = true;
+        while(!Thread.currentThread().isInterrupted() && flag)
         {
+
             try
             {
+                Thread.sleep(1);
                 Socket client = serverSocket.accept(); //accept a client
 
-                ClientInfo clientInfo = new ClientInfo(client.hashCode(), client.getInetAddress().toString(), client.getPort());
-                Runnable clientThread = new ServerImpl(clientInfo, client, clientMap, hashClientMap);
+                Runnable clientThread = new ServerImpl(client, clientMap);
                 clientThreadPool.submit(clientThread); //add to thread pool
-                clientMap.put(clientInfo, client); //put to map
-                hashClientMap.put(client.hashCode(), client);
+
                 this.textArea.append("Client " + client.hashCode() + " has connected to the server, IP: " +
                     client.getInetAddress().toString() + " , port: " + client.getPort() + ".\n");
             }
             catch (IOException e)
             {
                 this.textArea.append("An error occurred when a client trying to connect the server.\n");
+                try
+                {
+                    serverSocket.close();
+                }
+                catch (IOException e1)
+                {
+                    e1.printStackTrace();
+                }
+                flag = false;
                 //e.printStackTrace();
+            }
+            catch (InterruptedException e)
+            {
+                flag = false;
             }
         }
     }

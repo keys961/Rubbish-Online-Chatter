@@ -6,11 +6,17 @@ package client.ui;
 
 import java.awt.event.*;
 import client.Client;
-import client.ClientMessage;
+import client.ClientImpl;
+import common.ClientDBConfig;
 import common.ClientInfo;
+import common.DBConnectionFactory;
 
 import java.awt.*;
-import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import javax.swing.*;
 
 /**
@@ -20,44 +26,110 @@ public class ClientMessageFrame extends JFrame
 {
     private Client client;
 
-    private int currentId;
+    private ClientInfo targetInfo;
 
-    private int targetUid;
+    private ClientImpl clientImpl;
 
-    private String targetInfo;
-
-    private ClientMessage clientMessage;
-
-    public ClientMessageFrame(int targetUid, String targetInfo, Client client, int id)
+    public ClientMessageFrame(Client client, ClientInfo targetInfo, ClientImpl clientImpl)
     {
-        this.targetUid = targetUid;
-        this.targetInfo = targetInfo;
-        this.currentId = id;
         initComponents();
-        targetInfoLabel.setText("You're chatting with: " + this.targetInfo);
+
+        this.client = client;
+        this.targetInfo = targetInfo;
+        this.clientImpl = clientImpl;
+        this.clientImpl.addTextArea(targetInfo, this.chatTextArea);
+        targetInfoLabel.setText("You're chatting with: " + this.targetInfo.getUsername());
+        this.setTitle("You're chatting with: " + this.targetInfo.getUsername());
+        loadHistoryMessage();
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    }
+
+    private void loadHistoryMessage()
+    {
+        String query = String.format("SELECT %s, %s, %s, %s FROM %s " +
+                "WHERE (%s = ? AND %s = ?) OR (%s = ? AND %s = ?)" +
+                "ORDER BY %s DESC",
+                ClientDBConfig.ClientMessage.FROM_ID,
+                ClientDBConfig.ClientMessage.TO_ID,
+                ClientDBConfig.ClientMessage.MESSAGE,
+                ClientDBConfig.ClientMessage.SENT_TIME,
+                ClientDBConfig.ClientMessage.TABLE_NAME,
+                ClientDBConfig.ClientMessage.FROM_ID,
+                ClientDBConfig.ClientMessage.TO_ID,
+                ClientDBConfig.ClientMessage.FROM_ID,
+                ClientDBConfig.ClientMessage.TO_ID,
+                ClientDBConfig.ClientMessage.SENT_TIME);
+        Connection conn;
+        PreparedStatement statement;
+        ResultSet resultSet;
+
         try
         {
-            clientMessage = new ClientMessage(targetUid, client.getSocket(), chatTextArea, id);
-            Thread t = new Thread(clientMessage);
-            t.start();
+            conn = DBConnectionFactory.getClientConnection();
+            statement = conn.prepareStatement(query);
+            statement.setInt(1, client.getClientInfo().getId());
+            statement.setInt(2, targetInfo.getId());
+            statement.setInt(4, client.getClientInfo().getId());
+            statement.setInt(3, targetInfo.getId());
+            resultSet = statement.executeQuery();
+            while(resultSet.next())
+            {
+                int fromId = resultSet.getInt(1);
+                int toId = resultSet.getInt(2);
+                String message = resultSet.getString(3);
+                String date = resultSet.getString(4);
+                if(fromId == targetInfo.getId())
+                {
+                    chatTextArea.append("From " + targetInfo.getUsername() + " at " + date + " :\r\n");
+                    chatTextArea.append(message);
+                    chatTextArea.append("\r\n");
+                }
+                else if(fromId == client.getClientInfo().getId())
+                {
+                    chatTextArea.append("You at " + date + " :\r\n");
+                    chatTextArea.append(message);
+                    chatTextArea.append("\r\n");
+                }
+            }
+
+            conn.close();
         }
-        catch (IOException e)
+        catch (SQLException | ClassNotFoundException e)
         {
-            Toolkit.getDefaultToolkit().beep();
-            JOptionPane.showMessageDialog(null, "Client internal error", "Client internal error",
-                    JOptionPane.ERROR_MESSAGE);
-            this.dispose();
+            e.printStackTrace();
         }
     }
 
+
     private void sendButtonMouseClicked(MouseEvent e)
     {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        java.util.Date date = new java.util.Date();
         String message = sendTextArea.getText();
+        String[] segment = message.split("[\\r\\n]+");
+        StringBuilder msg = new StringBuilder();
+        for(String s : segment)
+        {
+            if(s == null || s.length() == 0)
+                continue;
+            msg.append(s);
+            msg.append("\r\n");
+        }
         sendTextArea.setText("");
-        chatTextArea.append("You:\r\n");
-        chatTextArea.append(message + "\r\n");
+        chatTextArea.append("You at " + sdf.format(date) + ": \r\n");
+        chatTextArea.append(msg.toString() + "\r\n");
 
-        clientMessage.sendMessage(message);
+        clientImpl.sendMessage(targetInfo, msg.toString());
+    }
+
+    private void thisWindowClosed(WindowEvent e)
+    {
+        //this.dispose();
+    }
+
+    private void thisWindowClosing(WindowEvent e)
+    {
+        clientImpl.removeTextArea(targetInfo);
     }
 
     private void initComponents()
@@ -74,6 +146,16 @@ public class ClientMessageFrame extends JFrame
 
         //======== this ========
         setMinimumSize(new Dimension(40, 80));
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                thisWindowClosed(e);
+            }
+            @Override
+            public void windowClosing(WindowEvent e) {
+                thisWindowClosing(e);
+            }
+        });
         Container contentPane = getContentPane();
         contentPane.setLayout(new GridLayout(3, 0));
 

@@ -5,10 +5,17 @@
 package client.ui;
 
 import client.Client;
+import common.ClientInfo;
+import common.DBConnectionFactory;
+import common.ServerDBConfig;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -23,9 +30,78 @@ public class ClientLoginFrame extends JFrame
         initComponents();
     }
 
+    private int checkUserValid()
+    {
+        String username = usernameTextField.getText();
+        String password = new String(passwordField.getPassword());
+
+        Connection serverConnection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try
+        {
+            serverConnection = DBConnectionFactory.getServerConnection();
+        }
+        catch (Exception e)
+        {
+            return 0;
+        }
+
+        try
+        {
+            String query = String.format("SELECT %s, %s FROM %s WHERE %s = ?",
+                    ServerDBConfig.ServerUser.UID,
+                    ServerDBConfig.ServerUser.PASSWORD,
+                    "server_user",
+                    ServerDBConfig.ServerUser.USERNAME);
+                    /*"SELECT " + ServerDBConfig.ServerUser.PASSWORD + +
+                    " " + Se" FROM server_user WHERE "
+                    + ServerDBConfig.ServerUser.USERNAME + " = ?";*/
+
+            preparedStatement = serverConnection.prepareStatement(query);
+            preparedStatement.setString(1, username);
+            resultSet = preparedStatement.executeQuery();
+            if(resultSet.next())
+            {
+                if(password.equals(resultSet.getString(2)))
+                    return resultSet.getInt(1);
+                return 0;
+            }
+            else
+                return 0;
+        }
+        catch (SQLException e)
+        {
+            return 0;
+        }
+        finally
+        {
+            try
+            {
+                serverConnection.close();
+                preparedStatement.close();
+                resultSet.close();
+            }
+            catch (SQLException | NullPointerException e)
+            {
+                //
+            }
+
+        }
+    }
+
     private void loginButtonMouseClicked(MouseEvent e)
     {
         String ip = ipTextField.getText();
+        int uid = -1;
+        if((uid = checkUserValid()) == 0)
+        {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(null, "Username/Password incorrect!",
+                    "Username/Password incorrect",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         int port;
         try
@@ -43,7 +119,7 @@ public class ClientLoginFrame extends JFrame
         Client client;
         try
         {
-            client = new Client(ip, port);
+            client = new Client(ip, port, new ClientInfo(uid, usernameTextField.getText()));
         }
         catch (IOException ex)
         {
@@ -57,20 +133,29 @@ public class ClientLoginFrame extends JFrame
         this.setVisible(false);
     }
 
+    private void registerButtonMouseClicked(MouseEvent e)
+    {
+        ClientRegisterFrame clientRegisterFrame = new ClientRegisterFrame();
+        clientRegisterFrame.setVisible(true);
+    }
+
     private void initComponents()
     {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner Evaluation license - Jintao Ye
         dialogPane = new JPanel();
         contentPanel = new JPanel();
-        label1 = new JLabel();
-        label2 = new JLabel();
         label3 = new JLabel();
         ipTextField = new JTextField();
         label4 = new JLabel();
         portTextField = new JTextField();
+        label1 = new JLabel();
+        usernameTextField = new JTextField();
+        label2 = new JLabel();
+        passwordField = new JPasswordField();
         buttonBar = new JPanel();
         loginButton = new JButton();
+        registerButton = new JButton();
 
         //======== this ========
         setTitle("Client Log in");
@@ -92,9 +177,7 @@ public class ClientLoginFrame extends JFrame
 
             //======== contentPanel ========
             {
-                contentPanel.setLayout(new GridLayout(3, 2));
-                contentPanel.add(label1);
-                contentPanel.add(label2);
+                contentPanel.setLayout(new GridLayout(4, 2));
 
                 //---- label3 ----
                 label3.setText("Server IP:");
@@ -105,6 +188,16 @@ public class ClientLoginFrame extends JFrame
                 label4.setText("Server Port:");
                 contentPanel.add(label4);
                 contentPanel.add(portTextField);
+
+                //---- label1 ----
+                label1.setText("Username:");
+                contentPanel.add(label1);
+                contentPanel.add(usernameTextField);
+
+                //---- label2 ----
+                label2.setText("Password:");
+                contentPanel.add(label2);
+                contentPanel.add(passwordField);
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
 
@@ -116,14 +209,26 @@ public class ClientLoginFrame extends JFrame
                 ((GridBagLayout)buttonBar.getLayout()).columnWeights = new double[] {1.0, 0.0};
 
                 //---- loginButton ----
-                loginButton.setText("OK");
+                loginButton.setText("Login");
                 loginButton.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         loginButtonMouseClicked(e);
                     }
                 });
-                buttonBar.add(loginButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
+                buttonBar.add(loginButton, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(0, 0, 0, 5), 0, 0));
+
+                //---- registerButton ----
+                registerButton.setText("Register");
+                registerButton.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        registerButtonMouseClicked(e);
+                    }
+                });
+                buttonBar.add(registerButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
                     GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                     new Insets(0, 0, 0, 0), 0, 0));
             }
@@ -139,13 +244,16 @@ public class ClientLoginFrame extends JFrame
     // Generated using JFormDesigner Evaluation license - Jintao Ye
     private JPanel dialogPane;
     private JPanel contentPanel;
-    private JLabel label1;
-    private JLabel label2;
     private JLabel label3;
     private JTextField ipTextField;
     private JLabel label4;
     private JTextField portTextField;
+    private JLabel label1;
+    private JTextField usernameTextField;
+    private JLabel label2;
+    private JPasswordField passwordField;
     private JPanel buttonBar;
     private JButton loginButton;
+    private JButton registerButton;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

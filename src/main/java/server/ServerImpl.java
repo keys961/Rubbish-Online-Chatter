@@ -14,8 +14,6 @@ public class ServerImpl implements Runnable
 {
     private Map<ClientInfo, Socket> clientMap;
 
-    private Map<Integer, Socket> hashClientMap;
-
     private ClientInfo clientInfo;
 
     private Socket socket;
@@ -24,12 +22,10 @@ public class ServerImpl implements Runnable
 
     private PrintWriter out;
 
-    public ServerImpl(ClientInfo info, Socket socket, Map<ClientInfo, Socket> clientMap, Map<Integer, Socket> hashClientMap) throws IOException
+    public ServerImpl(Socket socket, Map<ClientInfo, Socket> clientMap) throws IOException
     {
-        this.hashClientMap = hashClientMap;
         this.clientMap = clientMap;
         this.socket = socket;
-        this.clientInfo = info;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
@@ -40,17 +36,25 @@ public class ServerImpl implements Runnable
         {
             try
             {
-                String tag = in.readLine();
+                String tag = null;
+                String tline;
+                while(!(tline = in.readLine()).equals("")) //get header
+                {
+                    tag = tline;
+                }
+
                 if(tag != null)
                 {
                     switch (tag)
                     {
+                        case "[REG]": addClient(); break;
                         case "[GET INFO]": sendClientId(); break;
                         case "[GET ONLINE LIST]": getOnlineList(); break;
                         case "[SEND MSG]":
                             String target = in.readLine();
-                            //[TARGET UID]
-                            target = target.substring(1, target.length() - 1);
+                            //[UID&&USERNAME]
+                            String[] targetInfo = target.substring(1, target.length() - 1).split("&&");
+                            ClientInfo targetClientInfo = new ClientInfo(Integer.parseInt(targetInfo[0]), targetInfo[1]);
                             StringBuilder message = new StringBuilder();
                             String line;
                             while(!(line = in.readLine()).equals(""))
@@ -59,7 +63,7 @@ public class ServerImpl implements Runnable
                                 message.append("\r\n");
                             }
                             message.append("\r\n");
-                            sendMessage(Integer.parseInt(target), message.toString());
+                            sendMessage(targetClientInfo, message.toString());
                             break;
                         case "[EXIT]":
                             closeConnection();
@@ -73,9 +77,39 @@ public class ServerImpl implements Runnable
         }
     }
 
+    private void addClient()
+    {
+        String line = null;
+        String tag = "";
+
+        try
+        {
+            while (!(tag = in.readLine()).equals(""))
+                line = tag;
+            String[] info = line.split("&&");
+            clientInfo = new ClientInfo(Integer.parseInt(info[0]), info[1]);
+            clientMap.put(clientInfo, socket);
+        }
+        catch (IOException e)
+        {
+            //
+        }
+    }
+
+
     private void getOnlineList()
     {
-        StringBuilder infoList = new StringBuilder();
+        /**
+         * Format:
+         * [ONLINE LIST]\r\n
+         * \r\n
+         * [ClientInfo_1]\r\n
+         * [ClientInfo_2]\r\n
+         * ...
+         * [ClientInfo_n]\r\n
+         * \r\n
+         */
+        StringBuilder infoList = new StringBuilder("[ONLINE LIST]\r\n\r\n");
         for(ClientInfo info : clientMap.keySet())
         {
             if(info.getId() != clientInfo.getId())
@@ -89,15 +123,22 @@ public class ServerImpl implements Runnable
         out.flush();
     }
 
-    private void sendMessage(int uid, String message)
+    private void sendMessage(ClientInfo targetInfo, String message)
     {
-        if(hashClientMap.containsKey(uid))
+        if(clientMap.containsKey(targetInfo))
         {
-            Socket otherClient = hashClientMap.get(uid);
+            Socket otherClient = clientMap.get(targetInfo);
             try
             {
                 PrintWriter otherOut = new PrintWriter(new OutputStreamWriter(otherClient.getOutputStream()));
-                message = "[" + uid + "]\r\n" + message; //add header...
+                /**
+                 * Format:
+                 * [SrcUID&&SrcUsername]\r\n
+                 * \r\n
+                 * msg..
+                 * \r\n
+                 */
+                message = "[" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "]\r\n\r\n" + message; //add header...
                 otherOut.print(message); //forwarding message...
                 otherOut.flush();
             }
@@ -110,13 +151,19 @@ public class ServerImpl implements Runnable
 
     private void closeConnection()
     {
+        /**
+         * Format:
+         * [EXIT]\r\n
+         * \r\n
+         */
+        out.print("[EXIT]\r\n\r\n");
+        out.flush();
+        clientMap.remove(clientInfo);
         try
         {
             in.close();
             out.close();
             socket.close();
-            hashClientMap.remove(clientInfo.getId());
-            clientMap.remove(clientInfo);
         }
         catch (IOException e)
         {
@@ -124,6 +171,7 @@ public class ServerImpl implements Runnable
         }
     }
 
+    @Deprecated
     private void sendClientId()
     {
         out.println(clientInfo.getId());

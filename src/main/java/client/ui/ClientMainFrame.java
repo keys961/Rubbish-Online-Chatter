@@ -6,12 +6,12 @@ package client.ui;
 
 import java.awt.event.*;
 import client.Client;
-import client.ClientGetOnlineList;
+import client.ClientImpl;
 import common.ClientInfo;
 
 import java.awt.*;
-import java.io.*;
-import java.net.Socket;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -22,59 +22,85 @@ public class ClientMainFrame extends JFrame
 {
     private Client client;
 
-    private int currentId;
+    private ClientInfo clientInfo;
+
+    private Map<ClientInfo, JTextArea> clientInfoJTextAreaMap = new ConcurrentHashMap<>();
+
+    private ClientImpl clientImpl;
+
+    private Thread t;
 
     public ClientMainFrame(Client client)
     {
         this.client = client;
+        this.clientInfo = client.getClientInfo();
         initComponents();
-
         try
         {
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getSocket().getInputStream()));
-            PrintWriter out = new PrintWriter(client.getSocket().getOutputStream());
-            out.println("[GET INFO]"); //send request to get online list
-            out.flush();
-            String id = in.readLine();
-            this.idLabel.setText("Your ID: " + id);
-            currentId = Integer.parseInt(id);
-
-            Thread t = new Thread(new ClientGetOnlineList(onlineList, client.getSocket())); //start to update the online list
-            t.start();
+            this.clientImpl = new ClientImpl(client, clientInfoJTextAreaMap, this.onlineList);
         }
-        catch (IOException e)
+        catch (Exception e)
         {
-            //do nothing
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(null, "Initializing receiving message error!",
+                    "Initializing receiving message error",
+                    JOptionPane.ERROR_MESSAGE);
+            this.dispose();
+            return;
         }
+            /**
+             * GET INFO FORMAT:
+             * [GET INFO]
+             * \r\n
+             */
+//            out.println("[GET INFO]"); //send request to get client info
+//            out.println();
+//            out.flush();
+//            String id = in.readLine();
+            /**
+             * Register the client to the server, format:
+             * [REG]\r\n
+             * \r\n
+             * (uid)&&(username)\r\n
+             * \r\n
+             */
+        /**
+         * Get online list format:
+         * [GET ONLINE LIST]\r\n
+         * \r\n
+         */
+            t = new Thread(clientImpl);
+            t.start();
+
+            String reg = "[REG]\r\n\r\n" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "\r\n\r\n";
+            this.clientImpl.sendMessage(null, reg);
+            this.clientImpl.sendMessage(null, "[GET ONLINE LIST]\r\n\r\n");
+
+//            Thread t = new Thread(new ClientGetOnlineList(onlineList, client.getSocket())); //start to update the online list
+//            t.start();
     }
 
 
     private void refreshMenuItemActionPerformed(ActionEvent e)
     {
-        try
-        {
-            Thread t = new Thread(new ClientGetOnlineList(onlineList, client.getSocket()));
-            t.start();
-        }
-        catch (IOException ex)
-        {
-            //do nothing
-        }
+        this.clientImpl.sendMessage(null, "[GET ONLINE LIST]\r\n\r\n");
     }
 
     private void exitMenuItemActionPerformed(ActionEvent e)
     {
-        Socket socket = client.getSocket();
+        //TODO: bugs...
         try
         {
-            PrintWriter out = new PrintWriter(socket.getOutputStream());
-            out.println("[EXIT]");
-            out.flush();
-            out.close();
-            socket.close();
+            clientImpl.sendMessage(null, "[EXIT]\r\n\r\n");
+            /**
+             * Exit, format:
+             * [EXIT]\r\n
+             * \r\n
+             */
+            t.join();
             System.exit(0);
         }
-        catch (IOException e1)
+        catch (InterruptedException e1)
         {
             e1.printStackTrace();
         }
@@ -94,11 +120,13 @@ public class ClientMainFrame extends JFrame
         {
             if(e.getClickCount() >= 2)
             {
-                String targetInfo = (String)onlineList.getSelectedValue();
+                String targetInfoStr = (String)onlineList.getSelectedValue();
 
-                String uidStr = targetInfo.split(",")[0].substring(4);
-                int uid = Integer.parseInt(uidStr);
-                ClientMessageFrame clientMessageFrame = new ClientMessageFrame(uid, targetInfo, client, currentId);
+                String[] targetInfoStrs = targetInfoStr.split(",\\s+");
+                String targetUsername = targetInfoStrs[1].split("\\s+")[1];
+                int targetId = Integer.parseInt(targetInfoStrs[0].split("\\s+")[1]);
+                ClientMessageFrame clientMessageFrame = new ClientMessageFrame(this.client,
+                        new ClientInfo(targetId, targetUsername), this.clientImpl);
                 clientMessageFrame.setVisible(true);
             }
         }
@@ -117,7 +145,9 @@ public class ClientMainFrame extends JFrame
         scrollPane1 = new JScrollPane();
         onlineList = new JList();
         panel1 = new JPanel();
+        panel2 = new JPanel();
         idLabel = new JLabel();
+        usernameLabel = new JLabel();
         textArea1 = new JTextArea();
 
         //======== this ========
@@ -203,9 +233,19 @@ public class ClientMainFrame extends JFrame
                 {
                     panel1.setLayout(new GridLayout(2, 0));
 
-                    //---- idLabel ----
-                    idLabel.setText("Your ID:");
-                    panel1.add(idLabel);
+                    //======== panel2 ========
+                    {
+                        panel2.setLayout(new GridLayout(1, 2));
+
+                        //---- idLabel ----
+                        idLabel.setText("Your ID:");
+                        panel2.add(idLabel);
+
+                        //---- usernameLabel ----
+                        usernameLabel.setText("Username: ");
+                        panel2.add(usernameLabel);
+                    }
+                    panel1.add(panel2);
 
                     //---- textArea1 ----
                     textArea1.setText("Double click the item on the left to start chatting!");
@@ -213,9 +253,9 @@ public class ClientMainFrame extends JFrame
                     textArea1.setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.BOLD, 20));
                     textArea1.setAlignmentX(1.0F);
                     textArea1.setAlignmentY(1.0F);
-                    textArea1.setEditable(false);
                     textArea1.setTabSize(4);
                     textArea1.setWrapStyleWord(true);
+                    textArea1.setEditable(false);
                     panel1.add(textArea1);
                 }
                 contentPanel.add(panel1);
@@ -239,7 +279,9 @@ public class ClientMainFrame extends JFrame
     private JScrollPane scrollPane1;
     private JList onlineList;
     private JPanel panel1;
+    private JPanel panel2;
     private JLabel idLabel;
+    private JLabel usernameLabel;
     private JTextArea textArea1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

@@ -24,9 +24,18 @@ new FormModel {
 						"rows": 2
 					} ) {
 						name: "panel1"
-						add( new FormComponent( "javax.swing.JLabel" ) {
-							name: "idLabel"
-							"text": "Your ID:"
+						add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.GridLayout ) {
+							"columns": 2
+						} ) {
+							name: "panel2"
+							add( new FormComponent( "javax.swing.JLabel" ) {
+								name: "idLabel"
+								"text": "Your ID:"
+							} )
+							add( new FormComponent( "javax.swing.JLabel" ) {
+								name: "usernameLabel"
+								"text": "Username: "
+							} )
 						} )
 						add( new FormComponent( "javax.swing.JTextArea" ) {
 							name: "textArea1"
@@ -35,9 +44,9 @@ new FormModel {
 							"font": new java.awt.Font( "微软雅黑", 1, 20 )
 							"alignmentX": 1.0f
 							"alignmentY": 1.0f
-							"editable": false
 							"tabSize": 4
 							"wrapStyleWord": true
+							"editable": false
 						} )
 					} )
 				}, new FormLayoutConstraints( class java.lang.String ) {
