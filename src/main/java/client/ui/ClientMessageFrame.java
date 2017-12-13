@@ -38,9 +38,11 @@ public class ClientMessageFrame extends JFrame
         this.targetInfo = targetInfo;
         this.clientImpl = clientImpl;
         this.clientImpl.addTextArea(targetInfo, this.chatTextArea);
-        targetInfoLabel.setText("You're chatting with: " + this.targetInfo.getUsername());
+        targetInfoLabel.setText("    You're chatting with: " + this.targetInfo.getUsername());
         this.setTitle("You're chatting with: " + this.targetInfo.getUsername());
         loadHistoryMessage();
+        this.setSize(new Dimension(400, 550));
+        this.setResizable(false);
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
@@ -137,12 +139,14 @@ public class ClientMessageFrame extends JFrame
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner Evaluation license - Jintao Ye
         targetInfoLabel = new JLabel();
+        panel2 = new JPanel();
         scrollPane1 = new JScrollPane();
         chatTextArea = new JTextArea();
         panel1 = new JPanel();
         scrollPane2 = new JScrollPane();
         sendTextArea = new JTextArea();
         sendButton = new JButton();
+        label1 = new JLabel();
 
         //======== this ========
         setMinimumSize(new Dimension(40, 80));
@@ -157,60 +161,100 @@ public class ClientMessageFrame extends JFrame
             }
         });
         Container contentPane = getContentPane();
-        contentPane.setLayout(new GridLayout(3, 0));
+        contentPane.setLayout(new BorderLayout());
 
         //---- targetInfoLabel ----
-        targetInfoLabel.setText("You're chatting: ");
-        contentPane.add(targetInfoLabel);
+        targetInfoLabel.setText("    You're chatting with: ");
+        targetInfoLabel.setFont(targetInfoLabel.getFont().deriveFont(targetInfoLabel.getFont().getStyle() | Font.BOLD, 18f));
+        contentPane.add(targetInfoLabel, BorderLayout.NORTH);
 
-        //======== scrollPane1 ========
-        {
-            scrollPane1.setViewportView(chatTextArea);
-        }
-        contentPane.add(scrollPane1);
-
-        //======== panel1 ========
+        //======== panel2 ========
         {
 
             // JFormDesigner evaluation mark
-            panel1.setBorder(new javax.swing.border.CompoundBorder(
-                new javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0),
-                    "JFormDesigner Evaluation", javax.swing.border.TitledBorder.CENTER,
-                    javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog", java.awt.Font.BOLD, 12),
-                    java.awt.Color.red), panel1.getBorder())); panel1.addPropertyChangeListener(new java.beans.PropertyChangeListener(){public void propertyChange(java.beans.PropertyChangeEvent e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
+//            panel2.setBorder(new javax.swing.border.CompoundBorder(
+//                new javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0),
+//                    "JFormDesigner Evaluation", javax.swing.border.TitledBorder.CENTER,
+//                    javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog", java.awt.Font.BOLD, 12),
+//                    java.awt.Color.red), panel2.getBorder())); panel2.addPropertyChangeListener(new java.beans.PropertyChangeListener(){public void propertyChange(java.beans.PropertyChangeEvent e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
 
-            panel1.setLayout(new GridLayout(1, 2));
+            panel2.setLayout(new GridBagLayout());
+            ((GridBagLayout)panel2.getLayout()).rowHeights = new int[] {355, 0};
+            ((GridBagLayout)panel2.getLayout()).columnWeights = new double[] {1.0};
+            ((GridBagLayout)panel2.getLayout()).rowWeights = new double[] {1.0, 0.0};
 
-            //======== scrollPane2 ========
+            //======== scrollPane1 ========
             {
-                scrollPane2.setViewportView(sendTextArea);
-            }
-            panel1.add(scrollPane2);
 
-            //---- sendButton ----
-            sendButton.setText("Send");
-            sendButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    sendButtonMouseClicked(e);
+                //---- chatTextArea ----
+                chatTextArea.setEditable(false);
+                chatTextArea.setWrapStyleWord(true);
+                chatTextArea.setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1 Light", Font.PLAIN, 16));
+                scrollPane1.setViewportView(chatTextArea);
+            }
+            panel2.add(scrollPane1, new GridBagConstraints(0, 0, 1, 1, 1.0, 7.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(20, 20, 20, 20), 0, 0));
+
+            //======== panel1 ========
+            {
+                panel1.setLayout(new GridBagLayout());
+                ((GridBagLayout)panel1.getLayout()).columnWidths = new int[] {0, 0, 0};
+                ((GridBagLayout)panel1.getLayout()).rowHeights = new int[] {0, 0, 0};
+                ((GridBagLayout)panel1.getLayout()).columnWeights = new double[] {1.0, 1.0, 1.0E-4};
+                ((GridBagLayout)panel1.getLayout()).rowWeights = new double[] {1.0, 0.0, 1.0E-4};
+
+                //======== scrollPane2 ========
+                {
+
+                    //---- sendTextArea ----
+                    sendTextArea.setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.PLAIN, 15));
+                    sendTextArea.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+                    scrollPane2.setViewportView(sendTextArea);
+                    sendTextArea.setMargin(new Insets(0, 0,20, 20));
+                    sendTextArea.setWrapStyleWord(true);
+                    sendTextArea.setLineWrap(true);
                 }
-            });
-            panel1.add(sendButton);
+                panel1.add(scrollPane2, new GridBagConstraints(0, 0, 1, 1, 4.0, 2.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(0, 20, 0, 30), 0, 0));
+
+                //---- sendButton ----
+                sendButton.setText("Send");
+                sendButton.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        sendButtonMouseClicked(e);
+                    }
+                });
+                panel1.add(sendButton, new GridBagConstraints(1, 0, 1, 1, 1.0, 1.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(0, 0, 0, 20), 0, 0));
+                panel1.add(label1, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(0, 0, 0, 30), 0, 0));
+            }
+            panel2.add(panel1, new GridBagConstraints(0, 1, 1, 1, 0.0, 7.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(0, 0, 0, 0), 0, 0));
         }
-        contentPane.add(panel1);
-        setSize(400, 300);
+        contentPane.add(panel2, BorderLayout.CENTER);
+        setSize(499, 379);
         setLocationRelativeTo(getOwner());
+        contentPane.add(new JLabel(), BorderLayout.SOUTH);
         // JFormDesigner - End of component initialization  //GEN-END:initComponents
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
     // Generated using JFormDesigner Evaluation license - Jintao Ye
     private JLabel targetInfoLabel;
+    private JPanel panel2;
     private JScrollPane scrollPane1;
     private JTextArea chatTextArea;
     private JPanel panel1;
     private JScrollPane scrollPane2;
     private JTextArea sendTextArea;
     private JButton sendButton;
+    private JLabel label1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

@@ -28,6 +28,9 @@ public class ClientLoginFrame extends JFrame
     public ClientLoginFrame()
     {
         initComponents();
+        this.setSize(360, 240);
+        this.setResizable(false);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
 
     private int checkUserValid()
@@ -167,12 +170,12 @@ public class ClientLoginFrame extends JFrame
             dialogPane.setBorder(new EmptyBorder(12, 12, 12, 12));
 
             // JFormDesigner evaluation mark
-            dialogPane.setBorder(new javax.swing.border.CompoundBorder(
+           /* dialogPane.setBorder(new javax.swing.border.CompoundBorder(
                 new javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0),
                     "JFormDesigner Evaluation", javax.swing.border.TitledBorder.CENTER,
                     javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog", java.awt.Font.BOLD, 12),
                     java.awt.Color.red), dialogPane.getBorder())); dialogPane.addPropertyChangeListener(new java.beans.PropertyChangeListener(){public void propertyChange(java.beans.PropertyChangeEvent e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
-
+            */
             dialogPane.setLayout(new BorderLayout());
 
             //======== contentPanel ========

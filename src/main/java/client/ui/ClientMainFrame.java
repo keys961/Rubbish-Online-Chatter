@@ -35,6 +35,8 @@ public class ClientMainFrame extends JFrame
         this.client = client;
         this.clientInfo = client.getClientInfo();
         initComponents();
+        this.setSize(new Dimension(550, 600));
+        this.setResizable(false);
         try
         {
             this.clientImpl = new ClientImpl(client, clientInfoJTextAreaMap, this.onlineList);
@@ -80,6 +82,7 @@ public class ClientMainFrame extends JFrame
 //            t.start();
         this.usernameLabel.setText("Username: " + clientInfo.getUsername());
         this.idLabel.setText("ID: " + Integer.toString(clientInfo.getId()));
+        this.setTitle("Online Chatter - Your are " + clientInfo.getUsername());
     }
 
 
@@ -133,6 +136,25 @@ public class ClientMainFrame extends JFrame
         }
     }
 
+    private void thisWindowClosing(WindowEvent e)
+    {
+        try
+        {
+            clientImpl.sendMessage(null, "[EXIT]\r\n\r\n");
+            t.join();
+            System.exit(0);
+        }
+        catch (InterruptedException ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    private void thisWindowClosed(WindowEvent e)
+    {
+        thisWindowClosing(e);
+    }
+
     private void initComponents()
     {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
@@ -147,12 +169,26 @@ public class ClientMainFrame extends JFrame
         onlineList = new JList();
         panel1 = new JPanel();
         panel2 = new JPanel();
-        idLabel = new JLabel();
         usernameLabel = new JLabel();
+        idLabel = new JLabel();
+        textPane1 = new JTextPane();
         textArea1 = new JTextArea();
 
         //======== this ========
         setTitle("Main Frame");
+        setMinimumSize(new Dimension(180, 320));
+        setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.PLAIN, 12));
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                thisWindowClosed(e);
+            }
+            @Override
+            public void windowClosing(WindowEvent e) {
+                thisWindowClosing(e);
+            }
+        });
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
 
@@ -204,22 +240,30 @@ public class ClientMainFrame extends JFrame
             dialogPane.setBorder(new EmptyBorder(12, 12, 12, 12));
 
             // JFormDesigner evaluation mark
-            dialogPane.setBorder(new javax.swing.border.CompoundBorder(
-                new javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0),
-                    "JFormDesigner Evaluation", javax.swing.border.TitledBorder.CENTER,
-                    javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog", java.awt.Font.BOLD, 12),
-                    java.awt.Color.red), dialogPane.getBorder())); dialogPane.addPropertyChangeListener(new java.beans.PropertyChangeListener(){public void propertyChange(java.beans.PropertyChangeEvent e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
+//            dialogPane.setBorder(new javax.swing.border.CompoundBorder(
+//                new javax.swing.border.TitledBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0),
+//                    "JFormDesigner Evaluation", javax.swing.border.TitledBorder.CENTER,
+//                    javax.swing.border.TitledBorder.BOTTOM, new java.awt.Font("Dialog", java.awt.Font.BOLD, 12),
+//                    java.awt.Color.red), dialogPane.getBorder())); dialogPane.addPropertyChangeListener(new java.beans.PropertyChangeListener(){public void propertyChange(java.beans.PropertyChangeEvent e){if("border".equals(e.getPropertyName()))throw new RuntimeException();}});
 
             dialogPane.setLayout(new BorderLayout());
 
             //======== contentPanel ========
             {
-                contentPanel.setLayout(new GridLayout(1, 2));
+                contentPanel.setLayout(new GridBagLayout());
+                ((GridBagLayout)contentPanel.getLayout()).columnWidths = new int[] {290, 0, 0, 0};
+                ((GridBagLayout)contentPanel.getLayout()).rowHeights = new int[] {0, 0, 0};
+                ((GridBagLayout)contentPanel.getLayout()).columnWeights = new double[] {1.0, 0.0, 1.0, 1.0E-4};
+                ((GridBagLayout)contentPanel.getLayout()).rowWeights = new double[] {1.0, 0.0, 1.0E-4};
 
                 //======== scrollPane1 ========
                 {
 
                     //---- onlineList ----
+                    onlineList.setFont(new Font("Microsoft YaHei UI", Font.PLAIN, 18));
+                    onlineList.setBorder(null);
+                    onlineList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+                    onlineList.setVisibleRowCount(10);
                     onlineList.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -228,40 +272,59 @@ public class ClientMainFrame extends JFrame
                     });
                     scrollPane1.setViewportView(onlineList);
                 }
-                contentPanel.add(scrollPane1);
+                contentPanel.add(scrollPane1, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(20, 0, 10, 2), 0, 0));
 
                 //======== panel1 ========
                 {
-                    panel1.setLayout(new GridLayout(2, 0));
+                    panel1.setLayout(new GridBagLayout());
+                    ((GridBagLayout)panel1.getLayout()).columnWidths = new int[] {0, 0};
+                    ((GridBagLayout)panel1.getLayout()).rowHeights = new int[] {0, 0, 0, 0};
+                    ((GridBagLayout)panel1.getLayout()).columnWeights = new double[] {1.0, 1.0E-4};
+                    ((GridBagLayout)panel1.getLayout()).rowWeights = new double[] {1.0, 1.0, 1.0, 1.0E-4};
 
                     //======== panel2 ========
                     {
                         panel2.setLayout(new GridLayout(1, 2));
 
-                        //---- idLabel ----
-                        idLabel.setText("Your ID:");
-                        panel2.add(idLabel);
-
                         //---- usernameLabel ----
                         usernameLabel.setText("Username: ");
                         panel2.add(usernameLabel);
-                    }
-                    panel1.add(panel2);
 
-                    //---- textArea1 ----
-                    textArea1.setText("Double click the item on the left to start chatting!");
-                    textArea1.setLineWrap(true);
-                    textArea1.setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.BOLD, 20));
-                    textArea1.setAlignmentX(1.0F);
-                    textArea1.setAlignmentY(1.0F);
-                    textArea1.setTabSize(4);
-                    textArea1.setWrapStyleWord(true);
-                    textArea1.setEditable(false);
-                    panel1.add(textArea1);
+                        //---- idLabel ----
+                        idLabel.setText("Your ID:");
+                        panel2.add(idLabel);
+                    }
+                    panel1.add(panel2, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                        GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                        new Insets(20, 0, 0, 0), 0, 0));
+
+                    //---- textPane1 ----
+                    textPane1.setText("Double click the item in the left list to start chatting!");
+                    textPane1.setFont(textPane1.getFont().deriveFont(textPane1.getFont().getStyle() | Font.BOLD, 20f));
+                    textPane1.setOpaque(false);
+                    panel1.add(textPane1, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
+                        GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+                        new Insets(0, 0, 0, 0), 0, 0));
                 }
-                contentPanel.add(panel1);
+                contentPanel.add(panel1, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,
+                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                    new Insets(0, 0, 10, 0), 0, 0));
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
+
+            //---- textArea1 ----
+            textArea1.setText("Online List");
+            textArea1.setLineWrap(true);
+            textArea1.setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.BOLD, 20));
+            textArea1.setAlignmentX(1.0F);
+            textArea1.setAlignmentY(1.0F);
+            textArea1.setTabSize(4);
+            textArea1.setWrapStyleWord(true);
+            textArea1.setEditable(false);
+            textArea1.setOpaque(false);
+            dialogPane.add(textArea1, BorderLayout.NORTH);
         }
         contentPane.add(dialogPane, BorderLayout.CENTER);
         pack();
@@ -281,8 +344,9 @@ public class ClientMainFrame extends JFrame
     private JList onlineList;
     private JPanel panel1;
     private JPanel panel2;
-    private JLabel idLabel;
     private JLabel usernameLabel;
+    private JLabel idLabel;
+    private JTextPane textPane1;
     private JTextArea textArea1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }
