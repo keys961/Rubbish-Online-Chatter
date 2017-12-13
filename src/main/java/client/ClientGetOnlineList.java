@@ -30,13 +30,24 @@ public class ClientGetOnlineList implements Runnable
     @Override
     public void run()
     {
+        /**
+         * Get online list format:
+         * [GET ONLINE LIST]\r\n
+         * \r\n
+         */
         out.println("[GET ONLINE LIST]");
+        out.println();
         out.flush();
         DefaultListModel<String> clientInfoListModel = new DefaultListModel<>();
         list.removeAll();
         try
         {
-            //Thread.sleep(1000);
+            String line;
+            String tag = "";
+            while(!(line = in.readLine()).equals(""))
+                tag = line;
+            if(!tag.equals("[ONLINE LIST]"))
+                return;
             String info;
             int cnt = 0;
             while(!(info = in.readLine()).equals(""))

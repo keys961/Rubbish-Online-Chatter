@@ -25,5 +25,7 @@ public final class ClientDBConfig
         public static final String MESSAGE = "message";
 
         public static final String SENT_TIME = "sent_time";
+
+        public static final String USER_ID = "user_id";
     }
 }

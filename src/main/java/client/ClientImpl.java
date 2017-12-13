@@ -93,12 +93,14 @@ public class ClientImpl implements Runnable
     private void getMessage(String line)
     {
         PreparedStatement statement;
-        String update = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?,?,?,?)",
+
+        String update = String.format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?,?,?,?,?)",
                 ClientDBConfig.ClientMessage.TABLE_NAME,
                 ClientDBConfig.ClientMessage.FROM_ID,
                 ClientDBConfig.ClientMessage.TO_ID,
                 ClientDBConfig.ClientMessage.MESSAGE,
-                ClientDBConfig.ClientMessage.SENT_TIME);
+                ClientDBConfig.ClientMessage.SENT_TIME,
+                ClientDBConfig.ClientMessage.USER_ID);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try
         {
@@ -117,6 +119,7 @@ public class ClientImpl implements Runnable
             statement.setInt(2, srcInfo.getId());
             statement.setString(3, message.toString());
             statement.setString(4, sdf.format(date));
+            statement.setInt(5, srcInfo.getId());
             statement.executeUpdate();
             if(clientTextAreaMap.containsKey(targetInfo))
             {
@@ -185,12 +188,13 @@ public class ClientImpl implements Runnable
     public void sendMessage(ClientInfo targetInfo, String message)
     {
         PreparedStatement statement;
-        String update = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?,?,?,?)",
+        String update = String.format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?,?,?,?,?)",
                 ClientDBConfig.ClientMessage.TABLE_NAME,
                 ClientDBConfig.ClientMessage.FROM_ID,
                 ClientDBConfig.ClientMessage.TO_ID,
                 ClientDBConfig.ClientMessage.MESSAGE,
-                ClientDBConfig.ClientMessage.SENT_TIME);
+                ClientDBConfig.ClientMessage.SENT_TIME,
+                ClientDBConfig.ClientMessage.USER_ID);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if(targetInfo != null)
         {
@@ -203,6 +207,7 @@ public class ClientImpl implements Runnable
                 statement.setInt(2, targetInfo.getId());
                 statement.setString(3, message);
                 statement.setString(4, sdf.format(date));
+                statement.setInt(5, srcInfo.getId());
                 statement.executeUpdate();
             }
             catch (SQLException e)

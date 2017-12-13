@@ -72,12 +72,14 @@ public class ClientMainFrame extends JFrame
             t = new Thread(clientImpl);
             t.start();
 
-            String reg = "[REG]\r\n\r\n" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "\r\n\r\n";
+            String reg = "[REG]\r\n\r\n" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "\r\n\r\n";//reg
             this.clientImpl.sendMessage(null, reg);
             this.clientImpl.sendMessage(null, "[GET ONLINE LIST]\r\n\r\n");
 
 //            Thread t = new Thread(new ClientGetOnlineList(onlineList, client.getSocket())); //start to update the online list
 //            t.start();
+        this.usernameLabel.setText("Username: " + clientInfo.getUsername());
+        this.idLabel.setText("ID: " + Integer.toString(clientInfo.getId()));
     }
 
 

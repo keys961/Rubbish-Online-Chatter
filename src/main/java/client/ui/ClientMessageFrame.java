@@ -47,8 +47,7 @@ public class ClientMessageFrame extends JFrame
     private void loadHistoryMessage()
     {
         String query = String.format("SELECT %s, %s, %s, %s FROM %s " +
-                "WHERE (%s = ? AND %s = ?) OR (%s = ? AND %s = ?)" +
-                "ORDER BY %s DESC",
+                "WHERE ((%s = ? AND %s = ?) OR (%s = ? AND %s = ?)) AND %s = ?",
                 ClientDBConfig.ClientMessage.FROM_ID,
                 ClientDBConfig.ClientMessage.TO_ID,
                 ClientDBConfig.ClientMessage.MESSAGE,
@@ -58,7 +57,7 @@ public class ClientMessageFrame extends JFrame
                 ClientDBConfig.ClientMessage.TO_ID,
                 ClientDBConfig.ClientMessage.FROM_ID,
                 ClientDBConfig.ClientMessage.TO_ID,
-                ClientDBConfig.ClientMessage.SENT_TIME);
+                ClientDBConfig.ClientMessage.USER_ID);
         Connection conn;
         PreparedStatement statement;
         ResultSet resultSet;
@@ -71,6 +70,7 @@ public class ClientMessageFrame extends JFrame
             statement.setInt(2, targetInfo.getId());
             statement.setInt(4, client.getClientInfo().getId());
             statement.setInt(3, targetInfo.getId());
+            statement.setInt(5, client.getClientInfo().getId());
             resultSet = statement.executeQuery();
             while(resultSet.next())
             {
@@ -124,7 +124,7 @@ public class ClientMessageFrame extends JFrame
 
     private void thisWindowClosed(WindowEvent e)
     {
-        //this.dispose();
+        clientImpl.removeTextArea(targetInfo);
     }
 
     private void thisWindowClosing(WindowEvent e)
