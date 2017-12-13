@@ -90,7 +90,6 @@ public class ClientMainFrame extends JFrame
 
     private void exitMenuItemActionPerformed(ActionEvent e)
     {
-        //TODO: bugs...
         try
         {
             clientImpl.sendMessage(null, "[EXIT]\r\n\r\n");
@@ -109,11 +108,11 @@ public class ClientMainFrame extends JFrame
     }
 
     private void refreshMenuItemMouseClicked(MouseEvent e) {
-        // TODO add your code here
+
     }
 
     private void exitMenuItemMouseClicked(MouseEvent e) {
-        // TODO add your code here
+
     }
 
     private void onlineListMouseClicked(MouseEvent e)
