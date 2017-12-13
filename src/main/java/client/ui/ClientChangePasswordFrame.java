@@ -1,45 +1,43 @@
-/*
- * Created by JFormDesigner on Tue Dec 12 18:37:52 CST 2017
- */
-
 package client.ui;
 
 import common.DBConnectionFactory;
 import common.ServerDBConfig;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-import javax.swing.*;
-import javax.swing.border.*;
 
-/**
- * @author Jintao Ye
- */
-public class ClientRegisterFrame extends JFrame
+public class ClientChangePasswordFrame extends JFrame
 {
-    public ClientRegisterFrame()
+    private int currentUid;
+
+    public ClientChangePasswordFrame(int currentUid)
     {
         initComponents();
         this.setSize(280, 160);
         this.setResizable(false);
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        this.currentUid = currentUid;
     }
 
     private void okButtonMouseClicked(MouseEvent e)
     {
-        String username = usernameTextField.getText();
-        String password = new String(passwordField.getPassword());
-        String passwordAgain = new String(passwordAgainField.getPassword());
+        String originPassword = new String(originPasswordTextField.getPassword());
+        String password = new String(newPasswordField.getPassword());
+        String passwordAgain = new String(newPasswordAgainField.getPassword());
 
-        if(username.length() == 0 || password.length() == 0 || passwordAgain.length() == 0 || !password.equals(passwordAgain))
+        if(originPassword.length() == 0 || password.length() == 0 || passwordAgain.length() == 0 || !password.equals(passwordAgain))
         {
             Toolkit.getDefaultToolkit().beep();
-            JOptionPane.showMessageDialog(null, "Username/Password input incorrect!",
-                    "Username/Password Input Incorrect",
+            JOptionPane.showMessageDialog(null, "Password input format incorrect!",
+                    "Password Input Format Incorrect",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -47,43 +45,45 @@ public class ClientRegisterFrame extends JFrame
         Connection serverConnection = null;
         ResultSet resultSet = null;
         PreparedStatement preparedStatement = null;
-        String query = "SELECT count(uid) FROM server_user WHERE "
-            + ServerDBConfig.ServerUser.USERNAME + " = ?";
-        String update = "INSERT INTO server_user VALUES (?,?,?)";
+        String query = "SELECT password FROM server_user WHERE "
+                + ServerDBConfig.ServerUser.UID + " = ?";
+        String update = String.format("UPDATE %s SET %s = ? WHERE %s = ?",
+                ServerDBConfig.ServerUser.TABLE_NAME,
+                ServerDBConfig.ServerUser.PASSWORD,
+                ServerDBConfig.ServerUser.UID);
         try
         {
             serverConnection = DBConnectionFactory.getServerConnection();
             preparedStatement = serverConnection.prepareStatement(query);
-            preparedStatement.setString(1, username);
+            preparedStatement.setInt(1, currentUid);
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next())
             {
-                int count = resultSet.getInt(1);
-                if(count > 0)
+                String storedPassword = resultSet.getString(1);
+                if(!storedPassword.equals(originPassword))
                 {
                     Toolkit.getDefaultToolkit().beep();
-                    JOptionPane.showMessageDialog(null, "Username duplicated!",
-                            "Duplicated Username",
+                    JOptionPane.showMessageDialog(null, "Original password incorrect!",
+                            "Original Password Incorrect",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
             preparedStatement = serverConnection.prepareStatement(update);
-            preparedStatement.setInt(1, new Date().hashCode());
-            preparedStatement.setString(2, username);
-            preparedStatement.setString(3, password);
-            if(preparedStatement.executeUpdate() > 0)
+            preparedStatement.setString(1, password);
+            preparedStatement.setInt(2, currentUid);
+            if(preparedStatement.executeUpdate() >= 1)
             {
                 Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null, "User Created!",
-                        "User Created",
+                JOptionPane.showMessageDialog(null, "Password changed!",
+                        "Password changed",
                         JOptionPane.INFORMATION_MESSAGE);
             }
             else
             {
                 Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null, "User create fail!",
-                        "User create fail",
+                JOptionPane.showMessageDialog(null, "Changing password failed!",
+                        "Changing password failed",
                         JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -118,16 +118,16 @@ public class ClientRegisterFrame extends JFrame
         dialogPane = new JPanel();
         contentPanel = new JPanel();
         label1 = new JLabel();
-        usernameTextField = new JTextField();
+        originPasswordTextField = new JPasswordField();
         label2 = new JLabel();
-        passwordField = new JPasswordField();
+        newPasswordField = new JPasswordField();
         label3 = new JLabel();
-        passwordAgainField = new JPasswordField();
+        newPasswordAgainField = new JPasswordField();
         buttonBar = new JPanel();
         okButton = new JButton();
 
         //======== this ========
-        setTitle("Client Register");
+        setTitle("Change Password");
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
 
@@ -149,19 +149,19 @@ public class ClientRegisterFrame extends JFrame
                 contentPanel.setLayout(new GridLayout(3, 2));
 
                 //---- label1 ----
-                label1.setText("Username:");
+                label1.setText("Origin Password:");
                 contentPanel.add(label1);
-                contentPanel.add(usernameTextField);
+                contentPanel.add(originPasswordTextField);
 
                 //---- label2 ----
                 label2.setText("Password:");
                 contentPanel.add(label2);
-                contentPanel.add(passwordField);
+                contentPanel.add(newPasswordField);
 
                 //---- label3 ----
                 label3.setText("Again:");
                 contentPanel.add(label3);
-                contentPanel.add(passwordAgainField);
+                contentPanel.add(newPasswordAgainField);
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
 
@@ -173,7 +173,7 @@ public class ClientRegisterFrame extends JFrame
                 ((GridBagLayout)buttonBar.getLayout()).columnWeights = new double[] {1.0, 0.0};
 
                 //---- okButton ----
-                okButton.setText("OK");
+                okButton.setText("Change");
                 okButton.addMouseListener(new MouseAdapter()
                 {
                     @Override
@@ -183,8 +183,8 @@ public class ClientRegisterFrame extends JFrame
                     }
                 });
                 buttonBar.add(okButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
-                    GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                    new Insets(0, 0, 0, 0), 0, 0));
+                        GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                        new Insets(0, 0, 0, 0), 0, 0));
             }
             dialogPane.add(buttonBar, BorderLayout.SOUTH);
         }
@@ -199,11 +199,11 @@ public class ClientRegisterFrame extends JFrame
     private JPanel dialogPane;
     private JPanel contentPanel;
     private JLabel label1;
-    private JTextField usernameTextField;
+    private JPasswordField originPasswordTextField;
     private JLabel label2;
-    private JPasswordField passwordField;
+    private JPasswordField newPasswordField;
     private JLabel label3;
-    private JPasswordField passwordAgainField;
+    private JPasswordField newPasswordAgainField;
     private JPanel buttonBar;
     private JButton okButton;
     // JFormDesigner - End of variables declaration  //GEN-END:variables

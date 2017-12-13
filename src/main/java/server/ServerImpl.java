@@ -32,7 +32,8 @@ public class ServerImpl implements Runnable
 
     public void run()
     {
-        while (true)
+        boolean flag = true;
+        while (flag)
         {
             try
             {
@@ -72,7 +73,9 @@ public class ServerImpl implements Runnable
             }
             catch (IOException e)
             {
-                //do nothing
+                //socket dead, close it
+                closeConnection();
+                flag = false;
             }
         }
     }
@@ -156,8 +159,8 @@ public class ServerImpl implements Runnable
          * [EXIT]\r\n
          * \r\n
          */
-        out.print("[EXIT]\r\n\r\n");
-        out.flush();
+        //out.print("[EXIT]\r\n\r\n");
+       // out.flush();
         clientMap.remove(clientInfo);
         try
         {

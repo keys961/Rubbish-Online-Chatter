@@ -13,6 +13,8 @@ public final class ServerDBConfig
 
     public static final class ServerUser
     {
+        public static final String TABLE_NAME = "server_user";
+
         public static final String UID = "uid";
 
         public static final String USERNAME = "username";

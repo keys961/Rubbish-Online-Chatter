@@ -82,7 +82,7 @@ public class ClientMainFrame extends JFrame
 //            t.start();
         this.usernameLabel.setText("Username: " + clientInfo.getUsername());
         this.idLabel.setText("ID: " + Integer.toString(clientInfo.getId()));
-        this.setTitle("Online Chatter - Your are " + clientInfo.getUsername());
+        this.setTitle("Online Chatter - You are " + clientInfo.getUsername());
     }
 
 
@@ -110,12 +110,10 @@ public class ClientMainFrame extends JFrame
         }
     }
 
-    private void refreshMenuItemMouseClicked(MouseEvent e) {
-
-    }
-
-    private void exitMenuItemMouseClicked(MouseEvent e) {
-
+    private void changePasswordMenuItemActionPerformed(ActionEvent e)
+    {
+        ClientChangePasswordFrame clientChangePasswordFrame = new ClientChangePasswordFrame(clientInfo.getId());
+        clientChangePasswordFrame.setVisible(true);
     }
 
     private void onlineListMouseClicked(MouseEvent e)
@@ -136,12 +134,18 @@ public class ClientMainFrame extends JFrame
         }
     }
 
+    private void refreshButtonClicked(MouseEvent e)
+    {
+        this.clientImpl.sendMessage(null, "[GET ONLINE LIST]\r\n\r\n");
+    }
+
     private void thisWindowClosing(WindowEvent e)
     {
         try
         {
             clientImpl.sendMessage(null, "[EXIT]\r\n\r\n");
             t.join();
+            Thread.sleep(1);
             System.exit(0);
         }
         catch (InterruptedException ex)
@@ -163,6 +167,7 @@ public class ClientMainFrame extends JFrame
         menu1 = new JMenu();
         refreshMenuItem = new JMenuItem();
         exitMenuItem = new JMenuItem();
+        changePasswordMenuItem = new JMenuItem("Change Password");
         dialogPane = new JPanel();
         contentPanel = new JPanel();
         scrollPane1 = new JScrollPane();
@@ -171,6 +176,7 @@ public class ClientMainFrame extends JFrame
         panel2 = new JPanel();
         usernameLabel = new JLabel();
         idLabel = new JLabel();
+        refreshButton = new JButton("Refresh Online List");
         textPane1 = new JTextPane();
         textArea1 = new JTextArea();
 
@@ -179,13 +185,16 @@ public class ClientMainFrame extends JFrame
         setMinimumSize(new Dimension(180, 320));
         setFont(new Font("\u5fae\u8f6f\u96c5\u9ed1", Font.PLAIN, 12));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter()
+        {
             @Override
-            public void windowClosed(WindowEvent e) {
+            public void windowClosed(WindowEvent e)
+            {
                 thisWindowClosed(e);
             }
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(WindowEvent e)
+            {
                 thisWindowClosing(e);
             }
         });
@@ -201,35 +210,39 @@ public class ClientMainFrame extends JFrame
 
                 //---- refreshMenuItem ----
                 refreshMenuItem.setText("Refresh Online Client List");
-                refreshMenuItem.addMouseListener(new MouseAdapter() {
+                refreshMenuItem.addActionListener(new ActionListener()
+                {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
-                        refreshMenuItemMouseClicked(e);
-                    }
-                });
-                refreshMenuItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
+                    public void actionPerformed(ActionEvent e)
+                    {
                         refreshMenuItemActionPerformed(e);
                     }
                 });
                 menu1.add(refreshMenuItem);
 
-                //---- exitMenuItem ----
-                exitMenuItem.setText("Exit");
-                exitMenuItem.addMouseListener(new MouseAdapter() {
+                changePasswordMenuItem.addActionListener(new ActionListener()
+                {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
-                        exitMenuItemMouseClicked(e);
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        changePasswordMenuItemActionPerformed(e);
                     }
                 });
-                exitMenuItem.addActionListener(new ActionListener() {
+                menu1.add(changePasswordMenuItem);
+
+                //---- exitMenuItem ----
+                exitMenuItem.setText("Exit");
+                exitMenuItem.addActionListener(new ActionListener()
+                {
                     @Override
-                    public void actionPerformed(ActionEvent e) {
+                    public void actionPerformed(ActionEvent e)
+                    {
                         exitMenuItemActionPerformed(e);
                     }
                 });
                 menu1.add(exitMenuItem);
+
+
             }
             menuBar1.add(menu1);
         }
@@ -264,9 +277,11 @@ public class ClientMainFrame extends JFrame
                     onlineList.setBorder(null);
                     onlineList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
                     onlineList.setVisibleRowCount(10);
-                    onlineList.addMouseListener(new MouseAdapter() {
+                    onlineList.addMouseListener(new MouseAdapter()
+                    {
                         @Override
-                        public void mouseClicked(MouseEvent e) {
+                        public void mouseClicked(MouseEvent e)
+                        {
                             onlineListMouseClicked(e);
                         }
                     });
@@ -307,6 +322,17 @@ public class ClientMainFrame extends JFrame
                     panel1.add(textPane1, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
                         GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
                         new Insets(0, 0, 0, 0), 0, 0));
+                    refreshButton.addMouseListener(new MouseAdapter()
+                    {
+                        @Override
+                        public void mouseClicked(MouseEvent e)
+                        {
+                            refreshButtonClicked(e);
+                        }
+                    });
+                    panel1.add(refreshButton, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
+                            GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+                            new Insets(0, 0, 0, 0), 0, 0));
                 }
                 contentPanel.add(panel1, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,
                     GridBagConstraints.CENTER, GridBagConstraints.BOTH,
@@ -338,6 +364,7 @@ public class ClientMainFrame extends JFrame
     private JMenu menu1;
     private JMenuItem refreshMenuItem;
     private JMenuItem exitMenuItem;
+    private JMenuItem changePasswordMenuItem;
     private JPanel dialogPane;
     private JPanel contentPanel;
     private JScrollPane scrollPane1;
@@ -346,6 +373,7 @@ public class ClientMainFrame extends JFrame
     private JPanel panel2;
     private JLabel usernameLabel;
     private JLabel idLabel;
+    private JButton refreshButton;
     private JTextPane textPane1;
     private JTextArea textArea1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables

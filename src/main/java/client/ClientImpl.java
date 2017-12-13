@@ -5,7 +5,6 @@ import common.ClientInfo;
 import common.DBConnectionFactory;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -66,7 +65,7 @@ public class ClientImpl implements Runnable
     {
 
         String line = "";
-        String temp = null;
+        String temp = "";
         while (flag)
         {
             try
@@ -77,7 +76,7 @@ public class ClientImpl implements Runnable
                 switch (line)
                 {
                     case "[ONLINE LIST]": getOnlineList(); break;
-                    case "[EXIT]": closeConnection(); break;
+                    //case "[EXIT]": closeConnection(); break;
                     default:
                         getMessage(line); break;
                 }
@@ -151,7 +150,7 @@ public class ClientImpl implements Runnable
         }
         catch (IOException | SQLException e)
         {
-            System.err.println("Client end connection error.");
+            System.err.println("Client close connection error.");
         }
 
     }
@@ -220,7 +219,16 @@ public class ClientImpl implements Runnable
             out.print(sendMsg);
         }
         else
+        {
+            if (message.equals("[EXIT]\r\n\r\n"))
+            {
+                out.print(message);
+                out.flush();
+                closeConnection();
+                return;
+            }
             out.print(message);//other type of message
+        }
         out.flush();
     }
 

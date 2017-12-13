@@ -213,9 +213,11 @@ public class ClientLoginFrame extends JFrame
 
                 //---- loginButton ----
                 loginButton.setText("Login");
-                loginButton.addMouseListener(new MouseAdapter() {
+                loginButton.addMouseListener(new MouseAdapter()
+                {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
+                    public void mouseClicked(MouseEvent e)
+                    {
                         loginButtonMouseClicked(e);
                     }
                 });
@@ -225,9 +227,11 @@ public class ClientLoginFrame extends JFrame
 
                 //---- registerButton ----
                 registerButton.setText("Register");
-                registerButton.addMouseListener(new MouseAdapter() {
+                registerButton.addMouseListener(new MouseAdapter()
+                {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
+                    public void mouseClicked(MouseEvent e)
+                    {
                         registerButtonMouseClicked(e);
                     }
                 });

@@ -150,13 +150,16 @@ public class ClientMessageFrame extends JFrame
 
         //======== this ========
         setMinimumSize(new Dimension(40, 80));
-        addWindowListener(new WindowAdapter() {
+        addWindowListener(new WindowAdapter()
+        {
             @Override
-            public void windowClosed(WindowEvent e) {
+            public void windowClosed(WindowEvent e)
+            {
                 thisWindowClosed(e);
             }
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void windowClosing(WindowEvent e)
+            {
                 thisWindowClosing(e);
             }
         });
@@ -221,9 +224,11 @@ public class ClientMessageFrame extends JFrame
 
                 //---- sendButton ----
                 sendButton.setText("Send");
-                sendButton.addMouseListener(new MouseAdapter() {
+                sendButton.addMouseListener(new MouseAdapter()
+                {
                     @Override
-                    public void mouseClicked(MouseEvent e) {
+                    public void mouseClicked(MouseEvent e)
+                    {
                         sendButtonMouseClicked(e);
                     }
                 });

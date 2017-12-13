@@ -107,9 +107,11 @@ public class ServerFrame extends JFrame
 
             //---- startButton ----
             startButton.setText("Start");
-            startButton.addMouseListener(new MouseAdapter() {
+            startButton.addMouseListener(new MouseAdapter()
+            {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(MouseEvent e)
+                {
                     startButtonMouseClicked(e);
                 }
             });
@@ -118,9 +120,11 @@ public class ServerFrame extends JFrame
             //---- stopButton ----
             stopButton.setText("Stop");
             stopButton.setEnabled(false);
-            stopButton.addMouseListener(new MouseAdapter() {
+            stopButton.addMouseListener(new MouseAdapter()
+            {
                 @Override
-                public void mouseClicked(MouseEvent e) {
+                public void mouseClicked(MouseEvent e)
+                {
                     stopButtonMouseClicked(e);
                 }
             });
