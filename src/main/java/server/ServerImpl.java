@@ -18,9 +18,9 @@ public class ServerImpl implements Runnable
 
     private Socket socket;
 
-    private BufferedReader in;
+    private final BufferedReader in;
 
-    private PrintWriter out;
+    private final PrintWriter out;
 
     public ServerImpl(Socket socket, Map<ClientInfo, Socket> clientMap) throws IOException
     {
@@ -82,7 +82,7 @@ public class ServerImpl implements Runnable
 
     private void addClient()
     {
-        String line = null;
+        String line = "";
         String tag = "";
 
         try
@@ -122,8 +122,11 @@ public class ServerImpl implements Runnable
             }
         }
         infoList.append("\r\n");
-        out.print(infoList);
-        out.flush();
+        synchronized (out)
+        {
+            out.print(infoList);
+            out.flush();
+        }
     }
 
     private void sendMessage(ClientInfo targetInfo, String message)
@@ -133,17 +136,21 @@ public class ServerImpl implements Runnable
             Socket otherClient = clientMap.get(targetInfo);
             try
             {
-                PrintWriter otherOut = new PrintWriter(new OutputStreamWriter(otherClient.getOutputStream()));
-                /**
-                 * Format:
-                 * [SrcUID&&SrcUsername]\r\n
-                 * \r\n
-                 * msg..
-                 * \r\n
-                 */
-                message = "[" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "]\r\n\r\n" + message; //add header...
-                otherOut.print(message); //forwarding message...
-                otherOut.flush();
+
+                final PrintWriter otherOut = new PrintWriter(new OutputStreamWriter(otherClient.getOutputStream()));
+                    /**
+                     * Format:
+                     * [SrcUID&&SrcUsername]\r\n
+                     * \r\n
+                     * msg..
+                     * \r\n
+                     */
+                synchronized (otherOut)
+                {
+                    message = "[" + clientInfo.getId() + "&&" + clientInfo.getUsername() + "]\r\n\r\n" + message; //add header...
+                    otherOut.print(message); //forwarding message...
+                    otherOut.flush();
+                }
             }
             catch (IOException e)
             {
@@ -177,8 +184,11 @@ public class ServerImpl implements Runnable
     @Deprecated
     private void sendClientId()
     {
-        out.println(clientInfo.getId());
-        out.flush();
+        synchronized (out)
+        {
+            out.println(clientInfo.getId());
+            out.flush();
+        }
     }
 
 }
