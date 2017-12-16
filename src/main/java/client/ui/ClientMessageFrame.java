@@ -120,6 +120,7 @@ public class ClientMessageFrame extends JFrame
         sendTextArea.setText("");
         chatTextArea.append("You at " + sdf.format(date) + ": \r\n");
         chatTextArea.append(msg.toString() + "\r\n");
+        chatTextArea.setCaretPosition(chatTextArea.getText().length());
 
         clientImpl.sendMessage(targetInfo, msg.toString());
     }

@@ -127,6 +127,7 @@ public class ClientImpl implements Runnable
                    clientTextAreaMap.get(targetInfo).append("From " + targetInfo.getUsername() + " at " + sdf.format(date) + ": \r\n");
                    clientTextAreaMap.get(targetInfo).append(message.toString());
                    clientTextAreaMap.get(targetInfo).append("\r\n");
+                   clientTextAreaMap.get(targetInfo).setCaretPosition(clientTextAreaMap.get(targetInfo).getText().length());
                }
             }
 
